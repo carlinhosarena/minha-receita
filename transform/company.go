@@ -41,6 +41,7 @@ type company struct {
 	Telefone1                        string    `json:"ddd_telefone_1"`
 	Telefone2                        string    `json:"ddd_telefone_2"`
 	Fax                              string    `json:"ddd_fax"`
+	Email                            *string   `json:"email"`
 	SituacaoEspecial                 string    `json:"situacao_especial"`
 	DataSituacaoEspecial             *date     `json:"data_situacao_especial"`
 	OpcaoPeloSimples                 *bool     `json:"opcao_pelo_simples"`
@@ -110,10 +111,9 @@ func (c *company) identificadorMatrizFilial(v string) error {
 	return nil
 }
 
-func newCompany(row []string, l *lookups) (company, error) {
+func newCompany(row []string, l *lookups, privacy bool) (company, error) {
 	var c company
 	c.CNPJ = row[0] + row[1] + row[2]
-	c.NomeFantasia = companyNameClenup(row[4])
 	c.NomeCidadeNoExterior = row[8]
 	c.DescricaoTipoDeLogradouro = row[13]
 	c.Logradouro = row[14]
@@ -126,6 +126,13 @@ func newCompany(row []string, l *lookups) (company, error) {
 	c.Telefone2 = row[23] + row[24]
 	c.Fax = row[25] + row[26]
 	c.SituacaoEspecial = row[28]
+
+	if privacy {
+		c.NomeFantasia = companyNameClenup(row[4])
+	} else {
+		c.NomeFantasia = row[4]
+		c.Email = &row[27]
+	}
 
 	if err := c.identificadorMatrizFilial(row[3]); err != nil {
 		return c, fmt.Errorf("error trying to parse IdentificadorMatrizFilial: %w", err)
